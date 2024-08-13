@@ -1,0 +1,42 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Node.js dependencies
+        run: yarn install
+
+      - name: Build .NET application
+        run: dotnet build --configuration Release
+
+      - name: Pack .NET application
+        run: dotnet pack --configuration Release --output ./nupkg
+
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push ./nupkg/*.nupkg --source github --api-key ${{ secrets.NUGET_PUBLISH_TOKEN }}
