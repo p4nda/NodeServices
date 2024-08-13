@@ -1,19 +1,17 @@
 // Limit dependencies to core Node modules. This means the code in this file has to be very low-level and unattractive,
 // but simplifies things for the consumer of this module.
-import './Util/PatchModuleResolutionLStat';
-import './Util/OverrideStdOutputs';
-import * as http from 'http';
-import * as path from 'path';
 import { parseArgs } from './Util/ArgsUtil';
 import { exitWhenParentExits } from './Util/ExitWhenParentExits';
+import { createServer, ServerResponse } from 'http';
 import { AddressInfo } from 'net';
+import { resolve } from 'path';
 
-// Webpack doesn't support dynamic requires for files not present at compile time, so grab a direct
-// reference to Node's runtime 'require' function.
-const dynamicRequire: (name: string) => any = eval('require');
+// CommonJS support with ESM
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
-const server = http.createServer((req, res) => {
-    readRequestBodyAsJson(req, bodyJson => {
+const server = createServer((req, res) => {
+    readRequestBodyAsJson(req, async bodyJson => {
         let hasSentResult = false;
         const callback = (errorValue, successValue) => {
             if (!hasSentResult) {
@@ -54,16 +52,25 @@ const server = http.createServer((req, res) => {
         });
 
         try {
-            const resolvedPath = path.resolve(process.cwd(), bodyJson.moduleName);
-            const invokedModule = dynamicRequire(resolvedPath);
-            const func = bodyJson.exportedFunctionName ? invokedModule[bodyJson.exportedFunctionName] : invokedModule;
+            const resolvedPath = resolve(process.cwd(), bodyJson.moduleName);
+            const isESM = resolvedPath.endsWith('.mjs');
+            
+            const invokedModule = isESM
+                ? await import(resolvedPath) // Use dynamic import to load the ES module
+                : require(resolvedPath); // CommonJS (With ESM)
+                         
+            // Access the exported function if specified, otherwise use the default export
+            // Fixed default export condition to support both ESM and CommonJS
+            const func = bodyJson.exportedFunctionName
+                ? invokedModule[bodyJson.exportedFunctionName]
+                : isESM || invokedModule.default === "null" ? invokedModule.default : invokedModule;
             if (!func) {
-                throw new Error('The module "' + resolvedPath + '" has no export named "' + bodyJson.exportedFunctionName + '"');
+                throw new Error(`The module "${resolvedPath}" has no export named "${bodyJson.exportedFunctionName}"`);
             }
-
+            
             func.apply(null, [callback].concat(bodyJson.args));
         } catch (synchronousException) {
-            callback(synchronousException, null);
+             callback(synchronousException, null);
         }
     });
 });
@@ -88,7 +95,7 @@ function readRequestBodyAsJson(request, callback) {
     request.on('end', () => { callback(JSON.parse(requestBodyAsString)); });
 }
 
-function respondWithError(res: http.ServerResponse, errorValue: any) {
+function respondWithError(res: ServerResponse, errorValue: any) {
     res.statusCode = 500;
     res.end(JSON.stringify({
         errorMessage: errorValue.message || errorValue,

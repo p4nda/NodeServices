@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.NodeServices
         internal const string TimeoutConfigPropertyName = nameof(InvocationTimeoutMilliseconds);
         private const int DefaultInvocationTimeoutMilliseconds = 60 * 1000;
         private const string LogCategoryName = "Microsoft.AspNetCore.NodeServices";
-        private static readonly string[] DefaultWatchFileExtensions = { ".js", ".jsx", ".ts", ".tsx", ".json", ".html" };
+        private static readonly string[] DefaultWatchFileExtensions = { "mjs", ".js", ".jsx", ".ts", ".tsx", ".json", ".html" };
 
         /// <summary>
         /// Creates a new instance of <see cref="NodeServicesOptions"/>.

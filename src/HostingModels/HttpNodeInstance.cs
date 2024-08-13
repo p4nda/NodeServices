@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         : base(
                 EmbeddedResourceReader.Read(
                     typeof(HttpNodeInstance),
-                    "/Content/Node/entrypoint-http.js"),
+                    "/Content/Node/entrypoint-http.mjs"), // ESM
                 options.ProjectPath,
                 options.WatchFileExtensions,
                 MakeCommandLineOptions(port),

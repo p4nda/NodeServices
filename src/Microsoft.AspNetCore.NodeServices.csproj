@@ -17,11 +17,26 @@
     <PackageReference Include="Yarn.MSBuild" Version="1.22.19" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Content\Node\" />
+  </ItemGroup>
+
   <Sdk Name="Yarn.MSBuild" Version="1.15.2" />
 
+<!--  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">-->
+<!--    <YarnBuildCommand>run webpack &#45;&#45;mode development</YarnBuildCommand>-->
+<!--    <YarnBuildCommand Condition="'$(Configuration)' == 'Release'">run webpack &#45;&#45;mode production</YarnBuildCommand>-->
+<!--  </PropertyGroup>-->
+
+<!--  <Target Name="YarnInstall" BeforeTargets="YarnBuild" Condition="'$(TargetFramework)' == 'netstandard2.0'">-->
+<!--    <Message Text="Running yarn install on $(MSBuildProjectFile)" Importance="High" />-->
+<!--    <Yarn Command="install &#45;&#45;mutex network" />-->
+<!--  </Target>-->
+
+  <!-- Use Rollup for development and production builds -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <YarnBuildCommand>run webpack --mode development</YarnBuildCommand>
-    <YarnBuildCommand Condition="'$(Configuration)' == 'Release'">run webpack --mode production</YarnBuildCommand>
+    <YarnBuildCommand>run rollup --config rollup.config.js --environment DEVELOPMENT</YarnBuildCommand>
+    <YarnBuildCommand Condition="'$(Configuration)' == 'Release'">run rollup --config rollup.config.js --environment PRODUCTION</YarnBuildCommand>
   </PropertyGroup>
 
   <Target Name="YarnInstall" BeforeTargets="YarnBuild" Condition="'$(TargetFramework)' == 'netstandard2.0'">
@@ -30,7 +45,8 @@
   </Target>
 
   <Target Name="PrepublishScript" DependsOnTargets="YarnInstall" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
-    <Exec Command="node node_modules/webpack/bin/webpack.js" />
+    <!-- <Exec Command="node node_modules/webpack/bin/webpack.js" />-->
+    <Exec Command="node node_modules/rollup/dist/bin/rollup -c rollup.config.js" />
   </Target>
 
 </Project>
