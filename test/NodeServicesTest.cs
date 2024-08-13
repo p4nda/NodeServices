@@ -22,16 +22,18 @@ namespace Microsoft.AspNetCore.NodeServices
             // create our own INodeServices instance manually, since the tests are
             // not about DI (and we might want different config for each test).
             var serviceProvider = new ServiceCollection().BuildServiceProvider();
-            var options = new NodeServicesOptions(serviceProvider);
+            var options = new NodeServicesOptions(serviceProvider) { InvocationTimeoutMilliseconds = 5000 };
             _nodeServices = NodeServicesFactory.CreateNodeServices(options);
         }
 
+# region CommonJS        
+
         [Fact]
-        public async Task CanGetSuccessResult()
+        public async Task CanGetSuccessResult_CJS()
         {
             // Act
             var result = await _nodeServices.InvokeExportAsync<string>(
-                ModulePath("testCases"),
+                CjsModulePath("testCases"),
                 "getFixedString");
 
             // Assert
@@ -39,24 +41,24 @@ namespace Microsoft.AspNetCore.NodeServices
         }
 
         [Fact]
-        public async Task CanGetErrorResult()
+        public async Task CanGetErrorResult_CJS()
         {
             // Act/Assert
             var ex = await Assert.ThrowsAsync<NodeInvocationException>(() =>
                 _nodeServices.InvokeExportAsync<string>(
-                    ModulePath("testCases"),
+                    CjsModulePath("testCases"),
                     "raiseError"));
             Assert.StartsWith("This is an error from Node", ex.Message);
         }
 
         [Fact]
-        public async Task CanGetResultAsynchronously()
+        public async Task CanGetResultAsynchronously_CJS()
         {
             // Act
             // All the invocations are async, but this test shows we're not reliant
             // on the response coming back immediately
             var result = await _nodeServices.InvokeExportAsync<string>(
-                ModulePath("testCases"),
+                CjsModulePath("testCases"),
                 "getFixedStringWithDelay");
 
             // Assert
@@ -64,11 +66,11 @@ namespace Microsoft.AspNetCore.NodeServices
         }
 
         [Fact]
-        public async Task CanPassParameters()
+        public async Task CanPassParameters_CJS()
         {
             // Act
             var result = await _nodeServices.InvokeExportAsync<string>(
-                ModulePath("testCases"),
+                CjsModulePath("testCases"),
                 "echoSimpleParameters",
                 "Hey",
                 123);
@@ -78,11 +80,11 @@ namespace Microsoft.AspNetCore.NodeServices
         }
 
         [Fact]
-        public async Task CanPassParametersWithCamelCaseNameConversion()
+        public async Task CanPassParametersWithCamelCaseNameConversion_CJS()
         {
             // Act
             var result = await _nodeServices.InvokeExportAsync<string>(
-                ModulePath("testCases"),
+                CjsModulePath("testCases"),
                 "echoComplexParameters",
                 new ComplexModel { StringProp = "Abc", IntProp = 123, BoolProp = true });
 
@@ -91,11 +93,11 @@ namespace Microsoft.AspNetCore.NodeServices
         }
 
         [Fact]
-        public async Task CanReceiveComplexResultWithPascalCaseNameConversion()
+        public async Task CanReceiveComplexResultWithPascalCaseNameConversion_CJS()
         {
             // Act
             var result = await _nodeServices.InvokeExportAsync<ComplexModel>(
-                ModulePath("testCases"),
+                CjsModulePath("testCases"),
                 "getComplexObject");
 
             // Assert
@@ -105,19 +107,123 @@ namespace Microsoft.AspNetCore.NodeServices
         }
 
         [Fact]
-        public async Task CanInvokeDefaultModuleExport()
+        public async Task CanInvokeDefaultModuleExport_CJS()
         {
             // Act
             var result = await _nodeServices.InvokeAsync<string>(
-                ModulePath("moduleWithDefaultExport"),
+                CjsModulePath("moduleWithDefaultExport"),
                 "This is from .NET");
 
             // Assert
             Assert.Equal("Hello from the default export. You passed: This is from .NET", result);
         }
 
-        private static string ModulePath(string testModuleName)
-            => Path.Combine(AppContext.BaseDirectory, "js", testModuleName);
+# endregion CommonJS
+# region ESM modules
+
+        [Fact]
+        public async Task CanGetSuccessResult_ESM()
+        {
+            // Act
+            var result = await _nodeServices.InvokeExportAsync<string>(
+                MjsModulePath("testCases"),
+                "getFixedString");
+
+            // Assert
+            Assert.Equal("test result", result);
+        }
+
+        [Fact]
+        public async Task CanGetErrorResult_ESM()
+        {
+            // Act/Assert
+            var ex = await Assert.ThrowsAsync<NodeInvocationException>(() =>
+                _nodeServices.InvokeExportAsync<string>(
+                    MjsModulePath("testCases"),
+                    "raiseError"));
+            Assert.StartsWith("This is an error from Node", ex.Message);
+        }
+
+        [Fact]
+        public async Task CanGetResultAsynchronously_ESM()
+        {
+            // Act
+            // All the invocations are async, but this test shows we're not reliant
+            // on the response coming back immediately
+            var result = await _nodeServices.InvokeExportAsync<string>(
+                MjsModulePath("testCases"),
+                "getFixedStringWithDelay");
+
+            // Assert
+            Assert.Equal("delayed test result", result);
+        }
+
+        [Fact]
+        public async Task CanPassParameters_ESM()
+        {
+            // Act
+            var result = await _nodeServices.InvokeExportAsync<string>(
+                MjsModulePath("testCases"),
+                "echoSimpleParameters",
+                "Hey",
+                123);
+
+            // Assert
+            Assert.Equal("Param0: Hey; Param1: 123", result);
+        }
+
+        [Fact]
+        public async Task CanPassParametersWithCamelCaseNameConversion_ESM()
+        {
+            // Act
+            var result = await _nodeServices.InvokeExportAsync<string>(
+                MjsModulePath("testCases"),
+                "echoComplexParameters",
+                new ComplexModel { StringProp = "Abc", IntProp = 123, BoolProp = true });
+
+            // Assert
+            Assert.Equal("Received: [{\"stringProp\":\"Abc\",\"intProp\":123,\"boolProp\":true}]", result);
+        }
+
+        [Fact]
+        public async Task CanReceiveComplexResultWithPascalCaseNameConversion_ESM()
+        {
+            // Act
+            var result = await _nodeServices.InvokeExportAsync<ComplexModel>(
+                MjsModulePath("testCases"),
+                "getComplexObject");
+
+            // Assert
+            Assert.Equal("Hi from Node", result.StringProp);
+            Assert.Equal(456, result.IntProp);
+            Assert.True(result.BoolProp);
+        }
+
+        [Fact]
+        public async Task CanInvokeDefaultModuleExport_ESM()
+        {
+            // Act
+            var result = await _nodeServices.InvokeAsync<string>(
+                MjsModulePath("moduleWithDefaultExport"),
+                "This is from .NET");
+
+            // Assert
+            Assert.Equal("Hello from the default export. You passed: This is from .NET", result);
+        }
+
+# endregion ESM modules
+        
+        private static string CjsModulePath(string testModuleName)
+            => Path.Combine(AppContext.BaseDirectory, "js", $"{testModuleName}"); // .js
+        
+        /// <summary>
+        /// .mjs file extension is mandatory to treat the file as ES module,
+        /// check isESM in HttpNodeInstanceEntryPoint.ts
+        /// </summary>
+        /// <param name="testModuleName"></param>
+        /// <returns></returns>
+        private static string MjsModulePath(string testModuleName)
+            => Path.Combine(AppContext.BaseDirectory, "js", $"{testModuleName}.mjs");
 
         public void Dispose()
         {
