@@ -1,6 +1,11 @@
-# Microsoft.AspNetCore.NodeServices
+# NDF.NodeServices (with ESM support)
 
 This NuGet package provides a fast and robust way to invoke ESM and CommonJS modules from a .NET application (typically ASP.NET Core web apps). You can use this whenever you want to use Node/NPM-supplied functionality at runtime in ASP.NET. For example,
+
+ * Keeps all original [Microsoft.AspNetCore.NodeServices](https://github.com/koopla/NodeServices) functionality, but adds support for loading [ES modules](https://esmodule.com/introducing-the-esmodule-project/)
+ * The main http node server is updated to ESM
+ * Projects are updated to .NET 8
+
 
  * Executing arbitrary JavaScript
  * Runtime integration with JavaScript build or packaging tools, e.g., transpiling code via Babel
@@ -18,18 +23,20 @@ It is the underlying mechanism supporting the following packages:
   * Note: If you're deploying to an Azure web site, you don't need to do anything here - Node is already installed and available in the server environments
 * [.NET](https://dot.net)
   * For .NET Core (e.g., ASP.NET Core apps), you need at least 1.0 RC2
-  * For .NET Framework, you need at least version 4.5.1.
+  * For .NET Framework, you need at least version 4.5.1. and reference netstandard2.0
 
 ### Installation
 
 For .NET Core apps:
 
- * Add `Microsoft.AspNetCore.NodeServices` to the dependencies list in your `project.json` file
+ * Add `NDF.NodeServices` to the dependencies list in your `project.json` file
  * Run `dotnet restore` (or if you use Visual Studio, just wait a moment - it will restore dependencies automatically)
 
 For .NET Framework apps:
 
- * `nuget install Microsoft.AspNetCore.NodeServices`
+ * `nuget install NDF.NodeServices` would not work as forked GitHub repository can't be made public
+ * As a workaround, you can download the source and build the package yourself
+ * TODO: Publish a public NuGet package or create a pull request
 
 ### Do you just want to build an ASP.NET Core app with Angular / React / Knockout / etc.?
 
