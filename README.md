@@ -1,6 +1,6 @@
 # Microsoft.AspNetCore.NodeServices
 
-This NuGet package provides a fast and robust way to invoke Node.js code from a .NET application (typically ASP.NET Core web apps). You can use this whenever you want to use Node/NPM-supplied functionality at runtime in ASP.NET. For example,
+This NuGet package provides a fast and robust way to invoke ESM and CommonJS modules from a .NET application (typically ASP.NET Core web apps). You can use this whenever you want to use Node/NPM-supplied functionality at runtime in ASP.NET. For example,
 
  * Executing arbitrary JavaScript
  * Runtime integration with JavaScript build or packaging tools, e.g., transpiling code via Babel
@@ -67,6 +67,13 @@ public async Task<IActionResult> MyAction([FromServices] INodeServices nodeServi
 ```
 
 Of course, you also need to supply the Node.js code you want to invoke. Create a file called `addNumbers.js` at the root of your ASP.NET Core application, and add the following code:
+
+```javascript
+module.exports = function (callback, first, second) {
+    var result = first + second;
+    callback(/* error */ null, result);
+};
+```
 
 ```javascript
 module.exports = function (callback, first, second) {
