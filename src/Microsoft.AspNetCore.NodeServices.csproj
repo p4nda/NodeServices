@@ -6,9 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>NDF.NodeServices</PackageId>
     <LangVersion>latest</LangVersion>
-<!--    Update version manually when creating a new tag on GitHub (no CI setup yet)-->
-<!--    <Version>8.0.0</Version> -->
-<!--    VersionSuffix set by TeamCity (comment this section when pushing to GitHub) -->
+    <!-- Update VersionPrefix manually when adding new features -->
     <VersionPrefix Condition=" '$(VersionPrefix)' == '' ">8.0</VersionPrefix>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionPrefix).$(VersionSuffix)</Version>
     <Version Condition=" '$(VersionSuffix)' == '' ">$(VersionPrefix)</Version>
