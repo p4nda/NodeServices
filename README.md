@@ -3,9 +3,15 @@
 This NuGet package provides a fast and robust way to invoke ESM and CommonJS modules from a .NET application (typically ASP.NET Core web apps). You can use this whenever you want to use Node/NPM-supplied functionality at runtime in ASP.NET. For example,
 
  * Keeps all original [Microsoft.AspNetCore.NodeServices](https://github.com/koopla/NodeServices) functionality, but adds support for loading [ES modules](https://esmodule.com/introducing-the-esmodule-project/)
- * The main http node server is updated to ESM
+ * The main http node server logic script is updated to target ESM (check [entrypoint-http.mjs](https://github.com/p4nda/NodeServices/blob/develop/src/Content/Node/entrypoint-http.mjs))
  * Projects are updated to .NET 8
 
+### TODO:
+    * Use ESM by default, currently it requires *.mjs file extension for the script to be considered ESM
+    * Release of first LTS version with CommonJS deprecated via warning, but functionality still in core
+    * Release of first version with CommonJS removed by default
+
+## vvvvvvvv Original README with examples in CommonJS (not updated yet) vvvvvvvv
 
  * Executing arbitrary JavaScript
  * Runtime integration with JavaScript build or packaging tools, e.g., transpiling code via Babel
